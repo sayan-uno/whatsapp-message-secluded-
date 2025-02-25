@@ -71,6 +71,10 @@
             <label for="time">Set Time:</label>
             <input type="datetime-local" id="time" name="time" required>
 
+            <label>
+                <input type="checkbox" id="allDays"> Repeat Every Day
+            </label>            
+
             <button type="submit">Set Message</button>
         </form>
         <p id="status"></p>
@@ -133,6 +137,7 @@
             const message = document.getElementById("message").value;
             const time = new Date(document.getElementById("time").value).getTime();
             const now = new Date().getTime();
+            const allDays = document.getElementById("allDays").checked;
     
             if (time <= now) {
                 document.getElementById("status").textContent = "Please set a future time!";
@@ -152,7 +157,7 @@
                 const response = await fetch(backendUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ phone, message, time, fcmToken })
+                    body: JSON.stringify({ phone, message, time, fcmToken, allDays })
                 });
                 const result = await response.json();
                 document.getElementById("status").textContent = result.message;
