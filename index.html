@@ -80,6 +80,10 @@
         <p id="status"></p>
     </div>
 
+    <h2>Scheduled Messages</h2>
+<ul id="scheduleList"></ul>
+
+
     <script>
         // Firebase configuration (replace with your own from Firebase Console)
         const firebaseConfig = {
@@ -186,6 +190,70 @@
                 window.open(whatsappUrl, "_blank");
             };
         }
+    
+        async function fetchScheduledMessages() {
+    const fcmToken = await initializeNotifications(); // Get user's FCM token
+
+    if (!fcmToken) {
+        console.error("FCM Token not found.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://3000-sayanuno-wmsb-40jc5e1wsde.ws-us118.gitpod.io/schedules?fcmToken=${encodeURIComponent(fcmToken)}`);
+        const schedules = await response.json();
+
+        const scheduleList = document.getElementById("scheduleList");
+        scheduleList.innerHTML = ""; // Clear previous list
+
+        schedules.forEach(schedule => {
+            const listItem = document.createElement("li");
+            listItem.innerHTML = `📅 ${new Date(schedule.time).toLocaleString()} - 📞 ${schedule.phone} - 📝 ${schedule.message} 
+            <button onclick="deleteSchedule('${schedule._id}')">🗑 Delete</button>`;
+            
+            scheduleList.appendChild(listItem);
+        });
+    } catch (error) {
+        console.error("Error fetching scheduled messages:", error);
+    }
+}
+
+// Fetch messages after the page loads
+window.onload = fetchScheduledMessages;
+
+async function deleteSchedule(scheduleId) {
+    const fcmToken = await initializeNotifications(); // Get the user's FCM token
+
+    if (!fcmToken) {
+        console.error("FCM Token not found.");
+        return;
+    }
+
+    if (!confirm("Are you sure you want to delete this scheduled message?")) return;
+
+    try {
+        const response = await fetch(`https://3000-sayanuno-wmsb-40jc5e1wsde.ws-us118.gitpod.io/schedule/${scheduleId}`, {
+            method: "DELETE",
+            headers: { 
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ fcmToken }) // ✅ Send FCM token in request body
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to delete schedule.");
+        }
+
+        const result = await response.json();
+        alert(result.message);
+
+        // Refresh the list after deletion
+        fetchScheduledMessages();
+    } catch (error) {
+        console.error("Error deleting schedule:", error);
+        alert("Error deleting schedule. Please try again.");
+    }
+}
     </script>
 </body>
 </html>
