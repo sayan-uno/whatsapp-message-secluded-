@@ -165,6 +165,13 @@
                 });
                 const result = await response.json();
                 document.getElementById("status").textContent = result.message;
+
+                // Reload the page if the server response is successful
+if (response.ok) {
+    setTimeout(() => {
+        location.reload();
+    }, 1000); // Reload after 1 second for better UXu
+}
             } catch (error) {
                 document.getElementById("status").textContent = "Error scheduling message.";
                 console.error(error);
